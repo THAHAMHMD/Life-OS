@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LIFE OS">
+<meta name="theme-color" content="#14120E">
+<title>LIFE OS</title>
+<style>
+:root{
+  --ink:#14120E; --paper:#EFEAE0; --surface:#FFFFFF; --line:#D9D2C4; --stone:#7E766A;
+  --blue:#2D3BE0; --gold:#C98A16; --forest:#1F6B45; --amber:#B96D12; --signal:#B93520;
+  --bg:var(--paper); --fg:var(--ink); --card:var(--surface);
+  --r:6px; --pad:16px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14120E; --fg:#F2EDE3; --card:#1E1B16; --line:#332E26; --stone:#8B8378;
+         --blue:#5865FF; --gold:#E0A32E; --forest:#3E9E6C; --amber:#D98324; --signal:#DB5741; }
+}
+html[data-theme="light"]{ --bg:#EFEAE0; --fg:#14120E; --card:#FFFFFF; --line:#D9D2C4; --stone:#7E766A;
+  --blue:#2D3BE0; --gold:#C98A16; --forest:#1F6B45; --amber:#B96D12; --signal:#B93520; }
+html[data-theme="dark"]{ --bg:#14120E; --fg:#F2EDE3; --card:#1E1B16; --line:#332E26; --stone:#8B8378;
+  --blue:#5865FF; --gold:#E0A32E; --forest:#3E9E6C; --amber:#D98324; --signal:#DB5741; }
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font-family:inherit;color:inherit}
+button{background:none;border:none;padding:0;cursor:pointer}
+
+/* ---- type ---- */
+.lab{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.big{font-weight:850;letter-spacing:-.045em;font-variant-numeric:tabular-nums;line-height:.92}
+.num{font-variant-numeric:tabular-nums;font-weight:750;letter-spacing:-.02em}
+h2{font-size:15px;font-weight:850;letter-spacing:-.02em;margin:0}
+.sub{font-size:13px;color:var(--stone);line-height:1.45}
+
+/* ---- shell ---- */
+.wrap{max-width:520px;margin:0 auto;padding:0 var(--pad)}
+.top{padding:calc(14px + env(safe-area-inset-top)) 0 10px;display:flex;justify-content:space-between;align-items:center}
+.screen{display:none;animation:in .22s ease}
+.screen.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card.flat{background:transparent}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stack{display:flex;flex-direction:column;gap:4px}
+.sec{margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+.sec .rule{flex:1;height:1.5px;background:var(--line)}
+
+/* ---- hero money ---- */
+.hero{border:2.5px solid var(--fg);border-radius:var(--r);padding:18px 16px 16px;margin-bottom:12px;position:relative;overflow:hidden}
+.hero.ok{border-color:var(--forest)} .hero.warn{border-color:var(--amber)} .hero.bad{border-color:var(--signal)}
+.hero .amt{display:flex;align-items:flex-start;gap:3px;margin:6px 0 2px}
+.hero .cur{font-size:20px;font-weight:800;margin-top:8px;opacity:.6}
+.hero .val{font-size:clamp(46px,15vw,68px)}
+.ok .val{color:var(--forest)} .warn .val{color:var(--amber)} .bad .val{color:var(--signal)}
+.state{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}
+.ok .state{background:var(--forest);color:#fff} .warn .state{background:var(--amber);color:#fff} .bad .state{background:var(--signal);color:#fff}
+
+/* ---- pace bar : the signature ---- */
+.pace{margin-top:16px}
+.pace .track{position:relative;height:34px;border:1.5px solid var(--line);border-radius:3px;background:var(--bg);overflow:hidden}
+.pace .fill{position:absolute;inset:0 auto 0 0;background:var(--fg);opacity:.10}
+.pace .spent{position:absolute;top:0;bottom:0;left:0;border-right:3px solid var(--signal)}
+.ok .pace .spent{border-color:var(--forest)} .warn .pace .spent{border-color:var(--amber)}
+.pace .day{position:absolute;top:-1px;bottom:-1px;width:0;border-left:2px dashed var(--stone)}
+.pace .tag{position:absolute;top:50%;transform:translateY(-50%);font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;padding:0 6px}
+.pace .legend{display:flex;justify-content:space-between;margin-top:6px}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{border:1.5px solid var(--line);border-radius:var(--r);padding:11px 12px}
+.mini .v{font-size:24px;margin-top:3px}
+
+/* ---- focus ---- */
+.focus{border-left:4px solid var(--blue);background:var(--card);border:1.5px solid var(--line);border-left-width:4px;
+  border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.focus.done{border-left-color:var(--forest);opacity:.5}
+.tick{width:26px;height:26px;border:2px solid var(--stone);border-radius:5px;flex:none;display:grid;place-items:center;font-size:14px;font-weight:900}
+.focus.done .tick{background:var(--forest);border-color:var(--forest);color:#fff}
+.focus .t{font-size:15px;font-weight:750;letter-spacing:-.01em}
+
+/* ---- rings ---- */
+.rings{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ring{text-align:center}
+.ring svg{width:100%;height:auto;max-width:74px;display:block;margin:0 auto 5px}
+.ring .pct{font-size:12px;font-weight:850}
+
+/* ---- habits ---- */
+.area{border:1.5px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;background:var(--card)}
+.area>.head{display:flex;align-items:center;gap:10px;padding:12px 13px;width:100%;text-align:left}
+.area .bar{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.area .bar i{display:block;height:100%;background:var(--blue)}
+.area .body{display:none;padding:0 13px 8px;border-top:1.5px solid var(--line)}
+.area.open .body{display:block}
+.hab{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.hab:last-child{border-bottom:none}
+.hab .name{flex:1;font-size:14px;font-weight:600}
+.hab .wk{font-size:10px;font-weight:850;letter-spacing:.1em;color:var(--stone)}
+.hab.hit .wk{color:var(--forest)}
+.stp{display:flex;align-items:center;gap:2px;border:1.5px solid var(--line);border-radius:5px}
+.stp button{width:30px;height:30px;font-size:17px;font-weight:800;color:var(--stone)}
+.stp .n{min-width:44px;text-align:center;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+
+/* ---- forms ---- */
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;margin-bottom:5px}
+input,select,textarea{width:100%;padding:11px 12px;background:var(--bg);border:1.5px solid var(--line);
+  border-radius:5px;font-size:16px;font-weight:600;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+.btn{display:block;width:100%;padding:14px;background:var(--fg);color:var(--bg);border-radius:5px;
+  font-size:12px;font-weight:850;letter-spacing:.16em;text-transform:uppercase;text-align:center}
+.btn.b{background:var(--blue);color:#fff}
+.btn.g{background:transparent;color:var(--fg);border:1.5px solid var(--line)}
+.btn.d{background:transparent;color:var(--signal);border:1.5px solid var(--signal)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:8px 12px;border:1.5px solid var(--line);border-radius:20px;font-size:12px;font-weight:700}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip.sm{padding:6px 10px;font-size:11px}
+
+/* ---- lists / charts ---- */
+.ln{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ln:last-child{border-bottom:none}
+.dot{width:9px;height:9px;border-radius:2px;flex:none}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bl .row{margin-bottom:4px}
+.bl .t{height:9px;background:var(--line);border-radius:2px;overflow:hidden}
+.bl .t i{display:block;height:100%}
+.heat{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.heat i{aspect-ratio:1;border-radius:2px;background:var(--line)}
+
+/* ---- nav ---- */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1.5px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);z-index:40}
+nav .inner{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{padding:13px 0 11px;font-size:9.5px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--stone);border-top:3px solid transparent;margin-top:-1.5px}
+nav button.on{color:var(--fg);border-top-color:var(--blue)}
+
+/* ---- overlay ---- */
+.ov{position:fixed;inset:0;background:rgba(10,9,7,.72);backdrop-filter:blur(6px);z-index:60;
+  display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:520px;border-radius:14px 14px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));
+  max-height:92vh;overflow-y:auto;animation:up .24s cubic-bezier(.2,.8,.3,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom));
+  background:var(--fg);color:var(--bg);padding:11px 18px;border-radius:5px;font-size:12px;font-weight:800;
+  letter-spacing:.06em;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.gate{text-align:center;padding:14px 0}
+.gate .cd{font-size:56px;font-weight:850;letter-spacing:-.05em;color:var(--amber);font-variant-numeric:tabular-nums}
+.mile{border:1.5px solid var(--line);border-radius:var(--r);padding:12px;text-align:center}
+.mile.won{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.mile .ic{font-size:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pill{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--gold);color:var(--gold);
+  border-radius:20px;padding:4px 10px;font-size:11px;font-weight:850;letter-spacing:.06em}
+.note{border-left:3px solid var(--blue);padding:9px 0 9px 11px;font-size:13px;line-height:1.5;margin-bottom:9px;color:var(--fg)}
+.empty{text-align:center;padding:26px 14px;color:var(--stone);font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div id="boot" class="wrap" style="padding-top:80px"><p class="lab">Loading</p></div>
+
+<div id="app" style="display:none">
+
+<!-- ══════════ HOME ══════════ -->
+<section id="s-home" class="screen on"><div class="wrap">
+  <div class="top">
+    <div><div class="lab" id="greet">Good morning</div>
+      <div style="font-size:19px;font-weight:850;letter-spacing:-.03em">LIFE OS</div></div>
+    <div id="starPill"></div>
+  </div>
+  <div id="heroBox"></div>
+  <div class="split" id="miniBox"></div>
+  <div class="sec"><span class="lab">Today's focus</span><span class="rule"></span></div>
+  <div id="focusBox"></div>
+  <div class="sec"><span class="lab">This week</span><span class="rule"></span></div>
+  <div class="card"><div class="rings" id="ringBox"></div></div>
+  <div id="whyBox"></div>
+  <div id="patternBox"></div>
+  <div style="height:20px"></div>
+</div></section>
+
+<!-- ══════════ MONEY ══════════ -->
+<section id="s-money" class="screen"><div class="wrap">
+  <div class="top"><div style="font-size:19px;font-weight:850;letter-spacing:-.03em">MONEY</div>
+    <button class="chip" onclick="openSpend()">+ Spend</button></div>
+  <div id="moneyTop"></div>
+  <div class="sec"><span class="lab">Where it went</span><span class="rule"></span></div>
+  <div class="card" id="catBox"></div>
+  <div class="sec"><span class="lab">Goals</span><span class="rule"></span></div>
+  <div id="goalBox"></div>
+  <button class="btn g" onclick="openGoal()">Add a goal</button>
+  <div class="sec"><span class="lab">Recent</span><span class="rule"></span></div>
+  <div class="card" id="expBox"></div>
+  <div style="height:20px"></div>
+</div></section>
+
+<!-- ══════════ TODAY ══════════ -->
+<section id="s-today" class="screen"><div class="wrap">
+  <div class="top"><div><div class="lab" id="todayDate"></div>
+    <div style="font-size:19px;font-weight:850;letter-spacing:-.03em">TODAY</div></div>
+    <div id="dayScore" class="big" style="font-size:26px"></div></div>
+  <div id="habitBox"></div>
+  <div class="sec"><span class="lab">Close the day</span><span class="rule"></span></div>
+  <div id="reviewBox"></div>
+  <div style="height:20px"></div>
+</div></section>
+
+<!-- ══════════ STATS ══════════ -->
+<section id="s-stats" class="screen"><div class="wrap">
+  <div class="top"><div style="font-size:19px;font-weight:850;letter-spacing:-.03em">PATTERNS</div></div>
+  <div id="statsBox"></div>
+  <div style="height:20px"></div>
+</div></section>
+
+<!-- ══════════ SETUP ══════════ -->
+<section id="s-setup" class="screen"><div class="wrap">
+  <div class="top"><div style="font-size:19px;font-weight:850;letter-spacing:-.03em">SETUP</div></div>
+  <div id="setupBox"></div>
+  <div style="height:20px"></div>
+</div></section>
+
+<nav><div class="inner">
+  <button data-go="home" class="on">Home</button>
+  <button data-go="money">Money</button>
+  <button data-go="today">Today</button>
+  <button data-go="stats">Stats</button>
+  <button data-go="setup">Setup</button>
+</div></nav>
+</div>
+
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ═══════════ STORAGE ═══════════ */
+const KEY="lifeos-v1";
+const Store={
+  async load(){
+    try{ if(window.storage&&window.storage.get){ const r=await window.storage.get(KEY); return r&&r.value?JSON.parse(r.value):null; } }catch(e){}
+    try{ const v=localStorage.getItem(KEY); return v?JSON.parse(v):null; }catch(e){ return null; }
+  },
+  async save(s){
+    const j=JSON.stringify(s);
+    try{ if(window.storage&&window.storage.set){ await window.storage.set(KEY,j); return; } }catch(e){}
+    try{ localStorage.setItem(KEY,j); }catch(e){}
+  }
+};
+let S=null, saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>Store.save(S),250); }
+
+/* ═══════════ DEFAULTS ═══════════ */
+const AREAS={health:{n:"Health",c:"var(--forest)"},craft:{n:"Craft",c:"var(--blue)"},
+             learn:{n:"Learning",c:"var(--gold)"},goals:{n:"Goals",c:"var(--signal)"}};
+const DEF_HABITS=[
+ {id:"water",n:"Water",a:"health",t:"num",goal:3,unit:"L",step:.5,wk:6},
+ {id:"exer", n:"Exercise",a:"health",t:"num",goal:30,unit:"min",step:10,wk:4},
+ {id:"sleep",n:"Sleep before 12",a:"health",t:"tick",wk:5},
+ {id:"walk", n:"Walk",a:"health",t:"num",goal:5000,unit:"steps",step:1000,wk:5},
+ {id:"edit", n:"Edited",a:"craft",t:"tick",wk:6},
+ {id:"script",n:"Script written",a:"craft",t:"tick",wk:3},
+ {id:"asset",n:"Thumbnail / asset",a:"craft",t:"tick",wk:3},
+ {id:"deep", n:"Deep work",a:"craft",t:"num",goal:3,unit:"hrs",step:.5,wk:5},
+ {id:"skill",n:"Skill building",a:"learn",t:"num",goal:30,unit:"min",step:15,wk:5},
+ {id:"notes",n:"Notes taken",a:"learn",t:"tick",wk:3},
+ {id:"plan", n:"Planned tomorrow",a:"goals",t:"tick",wk:6},
+ {id:"phone",n:"No phone first 30 min",a:"goals",t:"tick",wk:5}
+];
+const DEF_CATS=["Food","Transport","Shopping","Subscriptions","Health","Family","Fun","Other"];
+const LEAK=["Shopping","Fun","Food"];
+const REASONS=["Too tired","No time","Office ran late","Didn't feel like it","Forgot","Something came up"];
+function blank(){return{
+  setup:{done:false,salary:0,salaryDay:1,floor:0,sleep:"00:00",theme:"auto",frictionAt:500},
+  fixed:[], alloc:{savings:0,invest:0,debt:0},
+  goals:[], expenses:[], cats:DEF_CATS.slice(),
+  habits:DEF_HABITS.map(h=>Object.assign({},h)), logs:{}, misses:[],
+  why:{banked:0,target:6}, seenMiles:[]
+};}
+
+/* ═══════════ DATE / CYCLE ═══════════ */
+const D=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+D(d.getMonth()+1)+"-"+D(d.getDate());
+const today=()=>ymd(new Date());
+function addDays(s,n){const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return ymd(d);}
+function diffDays(a,b){return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);}
+function cycleStart(){
+  const day=Math.min(S.setup.salaryDay||1,28), n=new Date();
+  let y=n.getFullYear(), m=n.getMonth();
+  if(n.getDate()<day){ m--; if(m<0){m=11;y--;} }
+  return y+"-"+D(m+1)+"-"+D(day);
+}
+function cycleEnd(){ const s=cycleStart(),d=new Date(s+"T12:00:00"); d.setMonth(d.getMonth()+1); d.setDate(d.getDate()-1); return ymd(d); }
+function weekStart(){ const s=cycleStart(), i=Math.floor(diffDays(s,today())/7); return addDays(s,i*7); }
+
+/* ═══════════ MONEY MATH ═══════════ */
+function M(){
+  const st=S.setup, cs=cycleStart(), ce=cycleEnd();
+  const days=diffDays(cs,ce)+1, dayIdx=Math.min(diffDays(cs,today())+1,days);
+  const fixed=S.fixed.reduce((a,b)=>a+(+b.amount||0),0);
+  const alloc=(+S.alloc.savings||0)+(+S.alloc.invest||0)+(+S.alloc.debt||0);
+  const spendable=Math.max(0,(+st.salary||0)-fixed-alloc);
+  const inCycle=S.expenses.filter(e=>e.d>=cs&&e.d<=ce);
+  const spent=inCycle.reduce((a,b)=>a+b.amt,0);
+  const balance=spendable-spent;
+  const ws=weekStart(), we=Math.min(diffDays(cs,ws)+7,days);
+  const spentBefore=inCycle.filter(e=>e.d<ws).reduce((a,b)=>a+b.amt,0);
+  const spentWeek=inCycle.filter(e=>e.d>=ws).reduce((a,b)=>a+b.amt,0);
+  const daysLeft=Math.max(1,days-diffDays(cs,ws));
+  const weeksLeft=Math.max(1,Math.ceil(daysLeft/7));
+  const weekAllow=Math.max(0,(spendable-spentBefore)/weeksLeft);
+  const weekLeft=weekAllow-spentWeek;
+  const dLeftWk=Math.max(1,Math.min(7,days-diffDays(cs,today())));
+  const todaySpent=inCycle.filter(e=>e.d===today()).reduce((a,b)=>a+b.amt,0);
+  const dayAllow=Math.max(0,weekLeft/dLeftWk)+todaySpent;
+  const expected=spendable*(dayIdx/days);
+  let state="ok";
+  if(spent>expected*1.02) state="warn";
+  if(balance<(+st.floor||0)||weekLeft<0) state="bad";
+  return{cs,ce,days,dayIdx,fixed,alloc,spendable,spent,balance,weekAllow,spentWeek,weekLeft,
+         dayAllow,todaySpent,expected,state,inCycle};
+}
+const fmt=n=>Math.round(n).toLocaleString("en-IN");
+
+/* ═══════════ HABIT MATH ═══════════ */
+function log(d){ return S.logs[d]||(S.logs[d]={h:{},mood:0,note:"",done:false}); }
+function met(h,v){ if(v===undefined||v===null)return false; return h.t==="tick"?!!v:(+v)>=h.goal; }
+function weekHits(h,ws){ let c=0; for(let i=0;i<7;i++){const d=addDays(ws||weekStart(),i); if(d>today())break;
+  const L=S.logs[d]; if(L&&met(h,L.h[h.id]))c++; } return c; }
+function areaPct(a){ const hs=S.habits.filter(h=>h.a===a); if(!hs.length)return 0;
+  let g=0,d=0; hs.forEach(h=>{g+=h.wk; d+=Math.min(weekHits(h),h.wk);}); return g?Math.round(d/g*100):0; }
+function overallPct(){ let g=0,d=0; S.habits.forEach(h=>{g+=h.wk;d+=Math.min(weekHits(h),h.wk);}); return g?d/g:0; }
+function dayPct(d){ const L=S.logs[d]; if(!L)return 0; let n=0;
+  S.habits.forEach(h=>{ if(met(h,L.h[h.id]))n++; }); return S.habits.length?n/S.habits.length:0; }
+function focus3(){
+  const dLeft=Math.max(1,7-diffDays(weekStart(),today()));
+  return S.habits.map(h=>{const hit=weekHits(h),need=h.wk-hit;
+    return{h,hit,need,urg:need<=0?-1:need/dLeft};})
+   .sort((a,b)=>b.urg-a.urg).slice(0,3);
+}
+function weekStreak(){
+  let n=0, ws=weekStart();
+  if(overallPct()<.8) ws=addDays(ws,-7);
+  for(let k=0;k<60;k++){
+    let g=0,d=0;
+    S.habits.forEach(h=>{g+=h.wk;d+=Math.min(weekHits(h,ws),h.wk);});
+    if(g&&d/g>=.8){n++; ws=addDays(ws,-7);} else break;
+  }
+  return n;
+}
+
+/* ═══════════ MILESTONES ═══════════ */
+function miles(){
+  const m=M(), sav=S.goals.filter(g=>g.type!=="debt").reduce((a,b)=>a+(+b.saved||0),0);
+  const dbt=S.goals.filter(g=>g.type==="debt");
+  const dPaid=dbt.reduce((a,b)=>a+(+b.saved||0),0), dTot=dbt.reduce((a,b)=>a+(+b.target||0),0);
+  return[
+   {id:"m1",ic:"◆",n:"First ₹10,000 saved",won:sav>=10000},
+   {id:"m2",ic:"◆",n:"₹50,000 saved",won:sav>=50000},
+   {id:"m3",ic:"▲",n:"Debt down 25%",won:dTot>0&&dPaid/dTot>=.25},
+   {id:"m4",ic:"▲",n:"Debt down 50%",won:dTot>0&&dPaid/dTot>=.5},
+   {id:"m5",ic:"●",n:"Debt cleared",won:dTot>0&&dPaid>=dTot},
+   {id:"m6",ic:"■",n:"4 weeks on target",won:weekStreak()>=4},
+   {id:"m7",ic:"■",n:"12 weeks on target",won:weekStreak()>=12},
+   {id:"m8",ic:"★",n:"Month ended in green",won:m.dayIdx>=m.days&&m.balance>=(+S.setup.floor||0)},
+   {id:"m9",ic:"▶",n:"Whyism launch ready",won:S.why.banked>=S.why.target}
+  ];
+}
+const stars=()=>miles().filter(m=>m.won).length+weekStreak();
+
+/* ═══════════ UI HELPERS ═══════════ */
+const $=s=>document.querySelector(s), h=s=>String(s==null?"":s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+function toast(t){ const e=$("#toast"); e.textContent=t; e.classList.add("on"); setTimeout(()=>e.classList.remove("on"),1700); }
+function sheet(html){ $("#sheet").innerHTML=html; $("#ov").classList.add("on"); }
+function closeSheet(){ $("#ov").classList.remove("on"); }
+$("#ov").addEventListener("click",e=>{ if(e.target.id==="ov")closeSheet(); });
+function go(k){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  $("#s-"+k).classList.add("on");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.go===k));
+  window.scrollTo(0,0); render(); }
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+/* ═══════════ RENDER : HOME ═══════════ */
+function rHome(){
+  const m=M(), hr=new Date().getHours();
+  $("#greet").textContent = hr<12?"Good morning":hr<17?"Good afternoon":hr<21?"Good evening":"Late night";
+  const st=stars(), stk=weekStreak();
+  $("#starPill").innerHTML=`<span class="pill">★ ${st}${stk?` · ${stk}w`:""}</span>`;
+
+  const msg = m.state==="ok" ? "On pace. Keep going."
+            : m.state==="warn" ? "Spending faster than the month is passing."
+            : (m.balance<(+S.setup.floor||0) ? "Below your floor. Stop discretionary spending." : "This week is blown. Next week just got smaller.");
+  const spentPct=Math.min(100,m.spendable?m.spent/m.spendable*100:0);
+  const dayPos=Math.min(100,m.dayIdx/m.days*100);
+  $("#heroBox").innerHTML=`
+   <div class="hero ${m.state}">
+     <div class="row"><span class="lab">Left to spend · cycle</span><span class="state">${m.state==="ok"?"On pace":m.state==="warn"?"Ahead of pace":"Critical"}</span></div>
+     <div class="amt"><span class="cur">₹</span><span class="val big">${fmt(m.balance)}</span></div>
+     <div class="sub">${msg}</div>
+     <div class="pace">
+       <div class="track">
+         <div class="fill" style="width:${spentPct}%"></div>
+         <div class="spent" style="width:${spentPct}%"></div>
+         <div class="day" style="left:${dayPos}%"></div>
+         <div class="tag lab" style="left:6px">Spent ${Math.round(spentPct)}%</div>
+         <div class="tag lab" style="right:6px">Day ${m.dayIdx}/${m.days}</div>
+       </div>
+       <div class="legend"><span class="lab">Solid = money gone</span><span class="lab">Dashed = time gone</span></div>
+     </div>
+   </div>`;
+  $("#miniBox").innerHTML=`
+    <div class="mini"><div class="lab">This week</div><div class="v big num" style="color:${m.weekLeft<0?"var(--signal)":"inherit"}">₹${fmt(m.weekLeft)}</div><div class="lab" style="margin-top:3px">of ₹${fmt(m.weekAllow)}</div></div>
+    <div class="mini"><div class="lab">Today</div><div class="v big num">₹${fmt(m.dayAllow-m.todaySpent)}</div><div class="lab" style="margin-top:3px">spent ₹${fmt(m.todaySpent)}</div></div>`;
+
+  $("#focusBox").innerHTML = focus3().map(f=>{
+    const L=log(today()), v=L.h[f.h.id], done=met(f.h,v);
+    return `<button class="focus ${done?"done":""}" onclick="quick('${f.h.id}')">
+      <span class="tick">${done?"✓":""}</span>
+      <span style="flex:1"><span class="t">${h(f.h.n)}</span><br>
+      <span class="lab">${f.hit}/${f.h.wk} this week${f.need>0?" · "+f.need+" to go":" · target hit"}</span></span>
+      ${f.h.t==="num"?`<span class="num" style="font-size:13px;color:var(--stone)">${v||0}${f.h.unit}</span>`:""}
+    </button>`;}).join("");
+
+  $("#ringBox").innerHTML=Object.keys(AREAS).map(a=>{
+    const p=areaPct(a),C=2*Math.PI*26;
+    return `<div class="ring"><svg viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="7"/>
+      <circle cx="32" cy="32" r="26" fill="none" stroke="${AREAS[a].c}" stroke-width="7" stroke-linecap="butt"
+        stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p/100)}" transform="rotate(-90 32 32)"/>
+      </svg><div class="pct">${p}%</div><div class="lab">${AREAS[a].n}</div></div>`;}).join("");
+
+  const wp=Math.min(100,S.why.banked/S.why.target*100);
+  $("#whyBox").innerHTML=`<div class="sec"><span class="lab">Whyism · launch progress</span><span class="rule"></span></div>
+   <div class="card"><div class="row" style="margin-bottom:9px">
+     <div><div class="big" style="font-size:30px">${S.why.banked} <span style="font-size:15px;color:var(--stone)">/ ${S.why.target}</span></div>
+     <div class="lab" style="margin-top:3px">${S.why.banked>=S.why.target?"Launch ready — go publish":"Videos banked before launch"}</div></div>
+     <div class="stp"><button onclick="bank(-1)">−</button><span class="n">${S.why.banked}</span><button onclick="bank(1)">+</button></div>
+   </div><div class="bl"><div class="t"><i style="width:${wp}%;background:var(--gold)"></i></div></div></div>`;
+
+  const p=patterns();
+  $("#patternBox").innerHTML = p.length?`<div class="sec"><span class="lab">What your data says</span><span class="rule"></span></div>
+    <div class="card">${p.map(x=>`<div class="note">${x}</div>`).join("")}</div>`:"";
+}
+function quick(id){ const hb=S.habits.find(x=>x.id===id), L=log(today());
+  if(hb.t==="tick") L.h[id]=!L.h[id]; else L.h[id]=met(hb,L.h[id])?0:hb.goal;
+  save(); render(); }
+function bank(n){ S.why.banked=Math.max(0,S.why.banked+n); save(); render(); }
+
+/* ═══════════ PATTERNS ═══════════ */
+function patterns(){
+  const out=[], m=M();
+  // weekday misses
+  const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  S.habits.forEach(hb=>{
+    const c=[0,0,0,0,0,0,0], t=[0,0,0,0,0,0,0];
+    Object.keys(S.logs).forEach(d=>{ const w=new Date(d+"T12:00:00").getDay(); t[w]++;
+      if(!met(hb,S.logs[d].h[hb.id]))c[w]++; });
+    let bi=-1,bv=0; for(let i=0;i<7;i++) if(t[i]>=3&&c[i]/t[i]>bv){bv=c[i]/t[i];bi=i;}
+    if(bi>=0&&bv>=.7) out.push(`<b>${h(hb.n)}</b> falls apart on ${days[bi]}s — missed ${Math.round(bv*100)}% of them.`);
+  });
+  // post salary spike
+  const early=m.inCycle.filter(e=>diffDays(m.cs,e.d)<7).reduce((a,b)=>a+b.amt,0);
+  if(m.spent>0&&early/m.spent>.4&&m.dayIdx>10)
+    out.push(`<b>${Math.round(early/m.spent*100)}%</b> of this cycle's spending happened in the first week after salary.`);
+  // top leak
+  const byCat={}; m.inCycle.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
+  const top=Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
+  if(top&&m.spent>0&&top[1]/m.spent>.3) out.push(`<b>${h(top[0])}</b> is ${Math.round(top[1]/m.spent*100)}% of everything you spent this cycle.`);
+  // sleep→edit link
+  let good=0,goodEdit=0,bad=0,badEdit=0;
+  Object.keys(S.logs).forEach(d=>{ const L=S.logs[d], nx=S.logs[addDays(d,1)]; if(!nx)return;
+    if(L.h.sleep){good++; if(nx.h.edit)goodEdit++;} else {bad++; if(nx.h.edit)badEdit++;} });
+  if(good>=4&&bad>=4&&goodEdit/good-badEdit/bad>=.25)
+    out.push(`You edit far more often the day after sleeping before 12. Sleep is upstream of your output.`);
+  // reasons
+  const rc={}; S.misses.forEach(x=>rc[x.r]=(rc[x.r]||0)+1);
+  const tr=Object.entries(rc).sort((a,b)=>b[1]-a[1])[0];
+  if(tr&&tr[1]>=4) out.push(`Your most common reason for missing things: <b>${h(tr[0])}</b> (${tr[1]}×).`);
+  return out.slice(0,4);
+}
+
+/* ═══════════ RENDER : MONEY ═══════════ */
+function rMoney(){
+  const m=M();
+  $("#moneyTop").innerHTML=`
+   <div class="card">
+     <div class="row"><span class="lab">Salary</span><span class="num">₹${fmt(S.setup.salary)}</span></div>
+     <div class="ln"><span class="dot" style="background:var(--stone)"></span><span style="flex:1;font-size:14px">Fixed bills</span><span class="num">−₹${fmt(m.fixed)}</span></div>
+     <div class="ln"><span class="dot" style="background:var(--gold)"></span><span style="flex:1;font-size:14px">Savings · invest · debt</span><span class="num">−₹${fmt(m.alloc)}</span></div>
+     <div class="ln" style="border-bottom:none"><span class="dot" style="background:var(--blue)"></span><span style="flex:1;font-size:14px;font-weight:800">Spendable</span><span class="num" style="font-size:17px">₹${fmt(m.spendable)}</span></div>
+   </div>
+   <div class="split">
+     <div class="mini"><div class="lab">Spent</div><div class="v big num">₹${fmt(m.spent)}</div></div>
+     <div class="mini"><div class="lab">Left</div><div class="v big num" style="color:${m.state==="bad"?"var(--signal)":m.state==="warn"?"var(--amber)":"var(--forest)"}">₹${fmt(m.balance)}</div></div>
+   </div>`;
+  const byCat={}; m.inCycle.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
+  const arr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]), mx=arr.length?arr[0][1]:1;
+  $("#catBox").innerHTML = arr.length? `<div class="bars">${arr.map(([c,v])=>`
+    <div class="bl"><div class="row"><span style="font-size:13px;font-weight:700">${h(c)}</span>
+    <span class="num" style="font-size:13px">₹${fmt(v)}</span></div>
+    <div class="t"><i style="width:${v/mx*100}%;background:${LEAK.includes(c)?"var(--signal)":"var(--blue)"}"></i></div></div>`).join("")}</div>`
+    : `<div class="empty">Nothing logged this cycle.<br>Tap <b>+ Spend</b> the moment you pay for something — that's the whole trick.</div>`;
+
+  $("#goalBox").innerHTML = S.goals.length? S.goals.map(g=>{
+    const p=Math.min(100,(+g.saved||0)/Math.max(1,+g.target)*100), isD=g.type==="debt";
+    return `<div class="card"><div class="row" style="margin-bottom:8px">
+      <div><div style="font-size:15px;font-weight:800">${h(g.n)}</div>
+      <div class="lab" style="margin-top:3px">${isD?"Debt · paid":g.type==="invest"?"Invested":"Saved"} ₹${fmt(g.saved)} of ₹${fmt(g.target)}</div></div>
+      <div class="big" style="font-size:22px;color:${isD?"var(--signal)":"var(--forest)"}">${Math.round(p)}%</div></div>
+      <div class="bl"><div class="t"><i style="width:${p}%;background:${isD?"var(--signal)":"var(--forest)"}"></i></div></div>
+      <div class="row" style="margin-top:10px;gap:8px">
+        <button class="chip sm" onclick="addGoal('${g.id}',500)">+500</button>
+        <button class="chip sm" onclick="addGoal('${g.id}',1000)">+1,000</button>
+        <button class="chip sm" onclick="addGoal('${g.id}',5000)">+5,000</button>
+        <button class="chip sm" onclick="editGoal('${g.id}')" style="margin-left:auto">Edit</button>
+      </div></div>`;}).join("")
+    : `<div class="empty">No goals yet. Add your emergency fund, your debt, and one investment — those three carry most of the weight.</div>`;
+
+  const rec=S.expenses.slice().sort((a,b)=>b.ts-a.ts).slice(0,25);
+  $("#expBox").innerHTML = rec.length? rec.map(e=>`<div class="ln">
+     <span class="dot" style="background:${LEAK.includes(e.cat)?"var(--signal)":"var(--blue)"}"></span>
+     <span style="flex:1"><span style="font-size:14px;font-weight:700">${h(e.cat)}</span>
+     ${e.note?`<br><span class="lab" style="letter-spacing:.04em;text-transform:none">${h(e.note)}</span>`:""}</span>
+     <span style="text-align:right"><span class="num">₹${fmt(e.amt)}</span><br><span class="lab">${h(e.d.slice(5))}</span></span>
+     <button onclick="delExp('${e.id}')" style="color:var(--stone);font-size:18px;padding:0 4px">×</button></div>`).join("")
+   : `<div class="empty">No spending logged yet.</div>`;
+}
+function delExp(id){ S.expenses=S.expenses.filter(e=>e.id!==id); save(); render(); toast("Deleted"); }
+function addGoal(id,n){ const g=S.goals.find(x=>x.id===id); g.saved=(+g.saved||0)+n; save(); render(); toast("+₹"+fmt(n)+" — nice"); }
+
+/* ═══════════ SPEND SHEET (with friction) ═══════════ */
+let pend=null;
+function openSpend(){
+  sheet(`<div class="lab" style="margin-bottom:12px">Log a spend</div>
+  <label class="f"><span class="lab">Amount</span><input id="sp-a" type="number" inputmode="decimal" placeholder="0" autofocus></label>
+  <label class="f"><span class="lab">Category</span><div class="chips" id="sp-c">${S.cats.map((c,i)=>`<button class="chip ${i===0?"on":""}" data-c="${h(c)}">${h(c)}</button>`).join("")}</div></label>
+  <label class="f"><span class="lab">What was it</span><input id="sp-n" placeholder="Optional"></label>
+  <label class="f"><span class="lab">Paid with</span><div class="chips" id="sp-m">${["UPI","Card","Cash","Netbanking"].map((c,i)=>`<button class="chip ${i===0?"on":""}" data-m="${c}">${c}</button>`).join("")}</div></label>
+  <label class="f"><span class="lab">Date</span><input id="sp-d" type="date" value="${today()}"></label>
+  <button class="btn b" onclick="trySpend()">Log it</button>
+  <div style="height:8px"></div><button class="btn g" onclick="closeSheet()">Cancel</button>`);
+  chipGroup("#sp-c"); chipGroup("#sp-m");
+  setTimeout(()=>$("#sp-a").focus(),120);
+}
+function chipGroup(sel){ const g=$(sel); g.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+  g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }); }
+function pick(sel,attr){ const b=$(sel).querySelector(".chip.on"); return b?b.dataset[attr]:""; }
+function trySpend(){
+  const amt=+$("#sp-a").value;
+  if(!amt||amt<=0){ toast("Enter an amount"); return; }
+  pend={id:"e"+Date.now(),ts:Date.now(),amt,cat:pick("#sp-c","c"),note:$("#sp-n").value.trim(),
+        method:pick("#sp-m","m"),d:$("#sp-d").value||today()};
+  if(LEAK.includes(pend.cat)&&amt>=(+S.setup.frictionAt||500)) gate(); else commit();
+}
+function gate(){
+  const m=M(); let n=10;
+  sheet(`<div class="gate">
+   <div class="lab">Pause</div>
+   <div class="cd" id="cd">10</div>
+   <div style="font-size:19px;font-weight:850;letter-spacing:-.02em;margin:6px 0 4px">₹${fmt(pend.amt)} on ${h(pend.cat)}</div>
+   <div class="sub" style="max-width:300px;margin:0 auto 14px">That's ${Math.round(pend.amt/Math.max(1,m.dayAllow)*10)/10}× your day. What are you giving up to afford it?</div>
+   <input id="gq" placeholder="I'm giving up…" style="text-align:center">
+   <div style="height:14px"></div>
+   <button class="btn" id="gb" disabled style="opacity:.4">Wait…</button>
+   <div style="height:8px"></div>
+   <button class="btn g" onclick="closeSheet()">Changed my mind</button>
+   <div class="lab" style="margin-top:12px">Backing out here is a win, not a failure.</div>
+  </div>`);
+  const t=setInterval(()=>{ n--; const c=$("#cd"); if(!c){clearInterval(t);return;}
+    c.textContent=n>0?n:"✓";
+    if(n<=0){ clearInterval(t); const b=$("#gb"); b.disabled=false; b.style.opacity=1;
+      b.textContent="Spend it anyway"; b.onclick=()=>{ const q=$("#gq").value.trim(); if(q)pend.note=(pend.note?pend.note+" · ":"")+"gave up: "+q; commit(); }; }
+  },1000);
+}
+function commit(){ S.expenses.push(pend); pend=null; save(); closeSheet(); render(); toast("Logged"); }
+
+/* ═══════════ GOAL SHEET ═══════════ */
+function openGoal(id){
+  const g=id?S.goals.find(x=>x.id===id):{n:"",type:"savings",target:0,saved:0};
+  sheet(`<div class="lab" style="margin-bottom:12px">${id?"Edit goal":"New goal"}</div>
+  <label class="f"><span class="lab">Name</span><input id="g-n" value="${h(g.n)}" placeholder="Emergency fund"></label>
+  <label class="f"><span class="lab">Type</span><div class="chips" id="g-t">
+    ${[["savings","Savings"],["invest","Investment"],["debt","Debt"],["thing","A specific thing"]].map(([v,l])=>
+    `<button class="chip ${g.type===v?"on":""}" data-t="${v}">${l}</button>`).join("")}</div></label>
+  <label class="f"><span class="lab">Target ₹</span><input id="g-a" type="number" inputmode="numeric" value="${g.target||""}"></label>
+  <label class="f"><span class="lab">Already there ₹</span><input id="g-s" type="number" inputmode="numeric" value="${g.saved||""}"></label>
+  <button class="btn b" onclick="saveGoal('${id||""}')">Save</button>
+  <div style="height:8px"></div>
+  ${id?`<button class="btn d" onclick="delGoal('${id}')">Delete goal</button><div style="height:8px"></div>`:""}
+  <button class="btn g" onclick="closeSheet()">Cancel</button>`);
+  chipGroup("#g-t");
+}
+const editGoal=openGoal;
+function saveGoal(id){
+  const o={id:id||"g"+Date.now(),n:$("#g-n").value.trim()||"Goal",type:pick("#g-t","t"),
+           target:+$("#g-a").value||0,saved:+$("#g-s").value||0};
+  if(id){ S.goals=S.goals.map(g=>g.id===id?o:g); } else S.goals.push(o);
+  save(); closeSheet(); render(); toast("Saved");
+}
+function delGoal(id){ S.goals=S.goals.filter(g=>g.id!==id); save(); closeSheet(); render(); }
+
+/* ═══════════ RENDER : TODAY ═══════════ */
+let openAreas={};
+function rToday(){
+  const d=new Date(), L=log(today());
+  $("#todayDate").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const dp=Math.round(dayPct(today())*100);
+  $("#dayScore").innerHTML=`<span style="color:${dp>=70?"var(--forest)":dp>=40?"var(--amber)":"var(--stone)"}">${dp}%</span>`;
+  $("#habitBox").innerHTML=Object.keys(AREAS).map(a=>{
+    const hs=S.habits.filter(x=>x.a===a), p=areaPct(a), op=openAreas[a]!==false;
+    return `<div class="area ${op?"open":""}">
+      <button class="head" onclick="tog('${a}')">
+        <span class="lab" style="min-width:64px;color:var(--fg)">${AREAS[a].n}</span>
+        <span class="bar"><i style="width:${p}%;background:${AREAS[a].c}"></i></span>
+        <span class="lab">${p}%</span></button>
+      <div class="body">${hs.map(hb=>{
+        const v=L.h[hb.id], ok=met(hb,v), hits=weekHits(hb);
+        return `<div class="hab ${hits>=hb.wk?"hit":""}">
+          <button class="tick" onclick="quick('${hb.id}')" style="${ok?"background:"+AREAS[a].c+";border-color:"+AREAS[a].c+";color:#fff":""}">${ok?"✓":""}</button>
+          <span class="name">${h(hb.n)}<br><span class="wk">${hits}/${hb.wk} this week</span></span>
+          ${hb.t==="num"?`<span class="stp"><button onclick="bump('${hb.id}',-1)">−</button>
+            <span class="n">${(v||0)}${hb.unit==="steps"?"":hb.unit}</span>
+            <button onclick="bump('${hb.id}',1)">+</button></span>`:""}
+        </div>`;}).join("")}</div></div>`;}).join("");
+
+  const [sh,sm]=(S.setup.sleep||"00:00").split(":").map(Number);
+  let cut=sh*60+sm-120; if(cut<0)cut+=1440;
+  const now=d.getHours()*60+d.getMinutes();
+  const late = sh<6 ? (now>=cut||now<sh*60+sm) : (now>=cut);
+  const missed=S.habits.filter(hb=>!met(hb,L.h[hb.id]));
+  $("#reviewBox").innerHTML = L.done ? `<div class="card">
+      <div class="row"><span class="lab">Day closed</span><span class="big" style="font-size:20px">${["","😖","😕","😐","🙂","😃"][L.mood]||""}</span></div>
+      ${L.note?`<div class="note" style="margin-top:10px">${h(L.note)}</div>`:""}
+      <button class="btn g" onclick="openReview()" style="margin-top:8px">Edit</button></div>`
+    : `<div class="card" ${late?'style="border-color:var(--blue);border-width:2.5px"':""}>
+      <div style="font-size:15px;font-weight:800;margin-bottom:5px">${late?"Time to close the day":"Nightly review"}</div>
+      <div class="sub" style="margin-bottom:12px">${missed.length?`${missed.length} thing${missed.length>1?"s":""} still open. Log what happened — the reason matters more than the miss.`:"Everything's ticked. Rate the day and go sleep."}</div>
+      <button class="btn ${late?"b":"g"}" onclick="openReview()">Start review</button></div>`;
+}
+function tog(a){ openAreas[a]=openAreas[a]===false; render(); }
+function bump(id,dir){ const hb=S.habits.find(x=>x.id===id), L=log(today());
+  L.h[id]=Math.max(0,Math.round(((+L.h[id]||0)+dir*hb.step)*100)/100); save(); render(); }
+
+/* ═══════════ REVIEW SHEET ═══════════ */
+function openReview(){
+  const L=log(today()), missed=S.habits.filter(hb=>!met(hb,L.h[hb.id]));
+  sheet(`<div class="lab" style="margin-bottom:4px">Close the day</div>
+   <div style="font-size:20px;font-weight:850;letter-spacing:-.03em;margin-bottom:16px">How did today actually go?</div>
+   ${missed.length?`<div class="lab" style="margin-bottom:9px">What got in the way</div>
+   ${missed.map(hb=>`<div style="margin-bottom:14px">
+     <div style="font-size:14px;font-weight:800;margin-bottom:7px">${h(hb.n)}</div>
+     <div class="chips" data-rr="${hb.id}">${REASONS.map(r=>`<button class="chip sm" data-r="${h(r)}">${h(r)}</button>`).join("")}</div>
+   </div>`).join("")}`:`<div class="note">Everything ticked. That's a full day.</div>`}
+   <div class="lab" style="margin:18px 0 9px">Energy today</div>
+   <div class="chips" id="rv-m">${[1,2,3,4,5].map(n=>`<button class="chip ${L.mood===n?"on":""}" data-m="${n}">${["😖","😕","😐","🙂","😃"][n-1]}</button>`).join("")}</div>
+   <label class="f" style="margin-top:18px"><span class="lab">What mattered today</span>
+     <textarea id="rv-n" rows="3" placeholder="One line.">${h(L.note)}</textarea></label>
+   <button class="btn b" onclick="saveReview()">Close the day</button>
+   <div style="height:8px"></div><button class="btn g" onclick="closeSheet()">Not yet</button>`);
+  chipGroup("#rv-m");
+  document.querySelectorAll("[data-rr]").forEach(g=>g.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    g.querySelectorAll(".chip").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }));
+}
+function saveReview(){
+  const L=log(today()), wk=weekStart();
+  document.querySelectorAll("[data-rr]").forEach(g=>{ const b=g.querySelector(".chip.on"); if(!b)return;
+    S.misses=S.misses.filter(x=>!(x.d===today()&&x.h===g.dataset.rr));
+    S.misses.push({d:today(),w:wk,h:g.dataset.rr,r:b.dataset.r}); });
+  const mb=$("#rv-m").querySelector(".chip.on");
+  L.mood=mb?+mb.dataset.m:0; L.note=$("#rv-n").value.trim(); L.done=true;
+  save(); closeSheet(); render();
+  toast(dayPct(today())>=.7?"Strong day. Sleep well.":"Logged. Tomorrow's a fresh sheet.");
+}
+
+/* ═══════════ RENDER : STATS ═══════════ */
+function rStats(){
+  const m=M(), stk=weekStreak();
+  let out=`<div class="split" style="margin-bottom:12px">
+    <div class="mini"><div class="lab">Week streak</div><div class="v big num">${stk}</div></div>
+    <div class="mini"><div class="lab">Stars</div><div class="v big num" style="color:var(--gold)">${stars()}</div></div></div>`;
+
+  out+=`<div class="sec"><span class="lab">Weekly targets</span><span class="rule"></span></div><div class="card"><div class="bars">`;
+  S.habits.forEach(hb=>{ const hit=weekHits(hb), p=Math.min(100,hit/hb.wk*100);
+    out+=`<div class="bl"><div class="row"><span style="font-size:13px;font-weight:700">${h(hb.n)}</span>
+    <span class="lab">${hit}/${hb.wk}</span></div>
+    <div class="t"><i style="width:${p}%;background:${p>=100?"var(--forest)":AREAS[hb.a].c}"></i></div></div>`; });
+  out+=`</div></div>`;
+
+  out+=`<div class="sec"><span class="lab">Last 30 days</span><span class="rule"></span></div><div class="card"><div class="heat">`;
+  for(let i=29;i>=0;i--){ const d=addDays(today(),-i), p=dayPct(d);
+    const c=p===0?"var(--line)":p<.4?"color-mix(in srgb,var(--blue) 25%,var(--line))":p<.7?"color-mix(in srgb,var(--blue) 55%,var(--line))":"var(--blue)";
+    out+=`<i style="background:${c}" title="${d}"></i>`; }
+  out+=`</div><div class="lab" style="margin-top:9px">Each square is a day. Darker = more done.</div></div>`;
+
+  const rc={}; S.misses.forEach(x=>rc[x.r]=(rc[x.r]||0)+1);
+  const ra=Object.entries(rc).sort((a,b)=>b[1]-a[1]);
+  out+=`<div class="sec"><span class="lab">Why you miss things</span><span class="rule"></span></div><div class="card">`;
+  out+= ra.length?`<div class="bars">${ra.map(([r,n])=>`<div class="bl"><div class="row">
+    <span style="font-size:13px;font-weight:700">${h(r)}</span><span class="lab">${n}×</span></div>
+    <div class="t"><i style="width:${n/ra[0][1]*100}%;background:var(--amber)"></i></div></div>`).join("")}</div>
+    <div class="lab" style="margin-top:12px">If "no time" leads, it's a scheduling problem. If "didn't feel like it" leads, it's an energy problem. Different fixes.</div>`
+   : `<div class="empty">Close a few days and your reasons will stack up here.</div>`;
+  out+=`</div>`;
+
+  const p=patterns();
+  if(p.length) out+=`<div class="sec"><span class="lab">Patterns</span><span class="rule"></span></div>
+    <div class="card">${p.map(x=>`<div class="note">${x}</div>`).join("")}</div>`;
+
+  out+=`<div class="sec"><span class="lab">Milestones</span><span class="rule"></span></div><div class="grid3">
+    ${miles().map(x=>`<div class="mile ${x.won?"won":""}"><div class="ic" style="color:${x.won?"var(--gold)":"var(--line)"}">${x.ic}</div>
+    <div class="lab" style="margin-top:5px;color:${x.won?"var(--fg)":"var(--stone)"};letter-spacing:.06em">${h(x.n)}</div></div>`).join("")}</div>`;
+
+  out+=`<div style="height:14px"></div><button class="btn g" onclick="toClaude()">Copy month summary for Claude</button>
+   <div class="lab" style="margin-top:9px;text-align:center">Paste it into Claude and ask for a coaching read.</div>`;
+  $("#statsBox").innerHTML=out;
+}
+function toClaude(){
+  const m=M(), rc={}; S.misses.forEach(x=>rc[x.r]=(rc[x.r]||0)+1);
+  const byCat={}; m.inCycle.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
+  const t=`Act as my money and discipline coach. Be direct. Here is my last cycle.
+
+MONEY (₹)
+Salary ${S.setup.salary} · Fixed bills ${Math.round(m.fixed)} · Savings/invest/debt ${Math.round(m.alloc)}
+Spendable ${Math.round(m.spendable)} · Spent ${Math.round(m.spent)} · Left ${Math.round(m.balance)}
+Day ${m.dayIdx} of ${m.days}. Expected spend by now: ${Math.round(m.expected)}. Status: ${m.state}
+By category: ${Object.entries(byCat).map(([c,v])=>c+" "+Math.round(v)).join(", ")||"none"}
+Goals: ${S.goals.map(g=>`${g.n} (${g.type}) ${Math.round(g.saved)}/${Math.round(g.target)}`).join("; ")||"none"}
+
+HABITS (this week, hit/target)
+${S.habits.map(hb=>`${hb.n}: ${weekHits(hb)}/${hb.wk}`).join("\n")}
+Week streak: ${weekStreak()}
+Reasons I missed things: ${Object.entries(rc).map(([r,n])=>r+" "+n+"x").join(", ")||"none logged"}
+
+Whyism channel: ${S.why.banked}/${S.why.target} videos banked before launch.
+
+Tell me: the one money leak to kill, the one habit to protect, and what my miss-reasons say about whether my problem is time, energy or motivation.`;
+  navigator.clipboard.writeText(t).then(()=>toast("Copied — paste into Claude")).catch(()=>{
+    sheet(`<div class="lab" style="margin-bottom:10px">Copy this</div><textarea rows="16">${h(t)}</textarea>
+    <div style="height:10px"></div><button class="btn g" onclick="closeSheet()">Done</button>`); });
+}
+
+/* ═══════════ RENDER : SETUP ═══════════ */
+function rSetup(){
+  const st=S.setup;
+  $("#setupBox").innerHTML=`
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Money</div>
+    <label class="f"><span class="lab">Monthly salary ₹</span><input type="number" inputmode="numeric" value="${st.salary||""}" onchange="setv('salary',this.value)"></label>
+    <label class="f"><span class="lab">Salary lands on day</span><input type="number" min="1" max="28" value="${st.salaryDay}" onchange="setv('salaryDay',this.value)"></label>
+    <label class="f"><span class="lab">Floor — never go below ₹</span><input type="number" inputmode="numeric" value="${st.floor||""}" onchange="setv('floor',this.value)"></label>
+    <label class="f"><span class="lab">Pause me on discretionary spends over ₹</span><input type="number" inputmode="numeric" value="${st.frictionAt}" onchange="setv('frictionAt',this.value)"></label>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:12px"><span class="lab">Fixed bills</span>
+      <button class="chip sm" onclick="addFixed()">+ Add</button></div>
+    ${S.fixed.length?S.fixed.map((f,i)=>`<div class="ln">
+      <input value="${h(f.name)}" onchange="setFixed(${i},'name',this.value)" style="flex:1;padding:7px 9px;font-size:14px">
+      <input type="number" inputmode="numeric" value="${f.amount}" onchange="setFixed(${i},'amount',this.value)" style="width:96px;padding:7px 9px;font-size:14px">
+      <button onclick="delFixed(${i})" style="color:var(--signal);font-size:19px;padding:0 4px">×</button></div>`).join("")
+      :`<div class="empty">Rent, phone, subscriptions — anything that leaves every month.</div>`}
+  </div>
+
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Taken out on salary day</div>
+    <div class="sub" style="margin-bottom:12px">You still make the transfer. The app just stops counting it as spendable.</div>
+    ${[["savings","Savings"],["invest","Investment"],["debt","Debt payment"]].map(([k,l])=>
+    `<label class="f"><span class="lab">${l} ₹</span><input type="number" inputmode="numeric" value="${S.alloc[k]||""}" onchange="setAlloc('${k}',this.value)"></label>`).join("")}
+  </div>
+
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Rhythm</div>
+    <label class="f"><span class="lab">I sleep around</span><input type="time" value="${st.sleep}" onchange="setv('sleep',this.value)"></label>
+    <div class="sub">The nightly review turns blue two hours before this.</div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:12px"><span class="lab">Habits & weekly targets</span>
+      <button class="chip sm" onclick="addHabit()">+ Add</button></div>
+    ${S.habits.map((hb,i)=>`<div class="ln" style="gap:7px">
+      <span class="dot" style="background:${AREAS[hb.a].c}"></span>
+      <input value="${h(hb.n)}" onchange="setHab(${i},'n',this.value)" style="flex:1;padding:7px 9px;font-size:13px">
+      ${hb.t==="num"?`<input type="number" value="${hb.goal}" onchange="setHab(${i},'goal',this.value)" style="width:62px;padding:7px 6px;font-size:13px" title="daily goal">`:""}
+      <input type="number" min="0" max="7" value="${hb.wk}" onchange="setHab(${i},'wk',this.value)" style="width:52px;padding:7px 6px;font-size:13px" title="days per week">
+      <button onclick="delHab(${i})" style="color:var(--signal);font-size:19px;padding:0 3px">×</button></div>`).join("")}
+    <div class="lab" style="margin-top:10px">Last box = days per week you're aiming for.</div>
+  </div>
+
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Whyism</div>
+    <label class="f"><span class="lab">Videos to bank before launch</span><input type="number" value="${S.why.target}" onchange="S.why.target=+this.value||6;save();render()"></label>
+  </div>
+
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Look</div>
+    <div class="chips">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>
+      `<button class="chip ${st.theme===v?"on":""}" onclick="setTheme('${v}')">${l}</button>`).join("")}</div>
+  </div>
+
+  <div class="card">
+    <div class="lab" style="margin-bottom:12px">Your data</div>
+    <div class="sub" style="margin-bottom:12px">Everything lives on this phone. Nothing is uploaded anywhere. Back it up every few weeks.</div>
+    <button class="btn g" onclick="exportData()">Back up — download file</button>
+    <div style="height:8px"></div>
+    <button class="btn g" onclick="importData()">Restore from a backup</button>
+    <div style="height:8px"></div>
+    <button class="btn d" onclick="wipe()">Erase everything</button>
+  </div>`;
+}
+function setv(k,v){ S.setup[k]=(k==="sleep")?v:(+v||0); if(k==="salaryDay")S.setup[k]=Math.min(28,Math.max(1,+v||1)); save(); render(); }
+function setAlloc(k,v){ S.alloc[k]=+v||0; save(); render(); }
+function setFixed(i,k,v){ S.fixed[i][k]=k==="amount"?(+v||0):v; save(); render(); }
+function addFixed(){ S.fixed.push({name:"New bill",amount:0}); save(); render(); }
+function delFixed(i){ S.fixed.splice(i,1); save(); render(); }
+function setHab(i,k,v){ S.habits[i][k]=(k==="n")?v:(+v||0); save(); render(); }
+function delHab(i){ S.habits.splice(i,1); save(); render(); }
+function addHabit(){
+  sheet(`<div class="lab" style="margin-bottom:12px">New habit</div>
+  <label class="f"><span class="lab">Name</span><input id="h-n" placeholder="Read 10 pages"></label>
+  <label class="f"><span class="lab">Area</span><div class="chips" id="h-a">${Object.entries(AREAS).map(([k,v],i)=>
+    `<button class="chip ${i===0?"on":""}" data-a="${k}">${v.n}</button>`).join("")}</div></label>
+  <label class="f"><span class="lab">How you log it</span><div class="chips" id="h-t">
+    <button class="chip on" data-t="tick">Tick</button><button class="chip" data-t="num">Number</button></div></label>
+  <label class="f"><span class="lab">Daily goal (numbers only)</span><input id="h-g" type="number" placeholder="30"></label>
+  <label class="f"><span class="lab">Unit</span><input id="h-u" placeholder="min"></label>
+  <label class="f"><span class="lab">Days per week</span><input id="h-w" type="number" min="1" max="7" value="5"></label>
+  <button class="btn b" onclick="saveHabit()">Add habit</button>
+  <div style="height:8px"></div><button class="btn g" onclick="closeSheet()">Cancel</button>`);
+  chipGroup("#h-a"); chipGroup("#h-t");
+}
+function saveHabit(){
+  const t=pick("#h-t","t");
+  S.habits.push({id:"h"+Date.now(),n:$("#h-n").value.trim()||"New habit",a:pick("#h-a","a"),t,
+    goal:+$("#h-g").value||1,unit:$("#h-u").value.trim()||"",step:1,wk:Math.min(7,+$("#h-w").value||5)});
+  save(); closeSheet(); render(); toast("Added");
+}
+function setTheme(v){ S.setup.theme=v; applyTheme(); save(); render(); }
+function applyTheme(){ const t=S.setup.theme;
+  if(t==="auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",t); }
+function exportData(){
+  const b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(b);
+  a.download="lifeos-backup-"+today()+".json"; a.click(); toast("Backed up");
+}
+function importData(){
+  const i=document.createElement("input"); i.type="file"; i.accept=".json,application/json";
+  i.onchange=()=>{ const f=i.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.setup)throw 0;
+      S=Object.assign(blank(),d); save(); applyTheme(); render(); toast("Restored"); }
+      catch(e){ toast("That file didn't work"); } };
+    r.readAsText(f); };
+  i.click();
+}
+function wipe(){ sheet(`<div style="font-size:19px;font-weight:850;letter-spacing:-.02em;margin-bottom:8px">Erase everything?</div>
+  <div class="sub" style="margin-bottom:16px">Every expense, habit log and goal goes. This can't be undone. Back up first if you're unsure.</div>
+  <button class="btn d" onclick="doWipe()">Yes, erase it all</button>
+  <div style="height:8px"></div><button class="btn g" onclick="closeSheet()">Keep my data</button>`); }
+function doWipe(){ S=blank(); S.setup.done=true; save(); closeSheet(); render(); toast("Erased"); }
+
+/* ═══════════ ONBOARDING ═══════════ */
+function onboard(){
+  document.body.innerHTML=`<div class="wrap" style="padding-top:calc(40px + env(safe-area-inset-top));padding-bottom:60px">
+   <div class="lab">Setup · once</div>
+   <div class="big" style="font-size:38px;margin:8px 0 14px">LIFE OS</div>
+   <div class="sub" style="margin-bottom:26px">Four numbers and you're running. All of it is editable later, and none of it leaves this phone.</div>
+   <label class="f"><span class="lab">What lands in your account each month ₹</span><input id="o1" type="number" inputmode="numeric" placeholder="50000"></label>
+   <label class="f"><span class="lab">Which day of the month</span><input id="o2" type="number" min="1" max="28" value="1"></label>
+   <label class="f"><span class="lab">The balance you never want to drop below ₹</span><input id="o3" type="number" inputmode="numeric" placeholder="leave blank for 15%"></label>
+   <label class="f"><span class="lab">What time you usually sleep</span><input id="o4" type="time" value="00:00"></label>
+   <div style="height:10px"></div>
+   <button class="btn b" id="ob">Start</button>
+   <div class="lab" style="margin-top:14px;text-align:center;line-height:1.7">Next: add your fixed bills in Setup</div>
+  </div>`;
+  document.getElementById("ob").onclick=()=>{
+    const sal=+document.getElementById("o1").value||0;
+    S.setup.salary=sal;
+    S.setup.salaryDay=Math.min(28,Math.max(1,+document.getElementById("o2").value||1));
+    S.setup.floor=+document.getElementById("o3").value||Math.round(sal*.15);
+    S.setup.sleep=document.getElementById("o4").value||"00:00";
+    S.setup.done=true; Store.save(S).then(()=>location.reload());
+  };
+}
+
+/* ═══════════ BOOT ═══════════ */
+function render(){ rHome(); rMoney(); rToday(); rStats(); rSetup(); }
+(async function(){
+  S=await Store.load();
+  if(!S){ S=blank(); }
+  else { const b=blank(); S=Object.assign(b,S); S.setup=Object.assign(b.setup,S.setup); }
+  document.getElementById("boot").remove();
+  if(!S.setup.done){ onboard(); return; }
+  applyTheme();
+  document.getElementById("app").style.display="block";
+  render();
+})();
+</script>
+</body>
+</html>
