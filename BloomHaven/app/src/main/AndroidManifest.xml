@@ -17,7 +17,7 @@
         android:theme="@style/Theme.BloomHaven"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        tools:targetApi="34"
+        tools:targetApi="35"
         xmlns:tools="http://schemas.android.com/tools">
 
         <activity
