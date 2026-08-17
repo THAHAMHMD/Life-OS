@@ -131,6 +131,6 @@ interface InvestmentDao {
     @Delete
     suspend fun delete(investment: InvestmentEntity)
 
-    @Query("SELECT * FROM money_investment ORDER BY createdAt DESC")
+    @Query("SELECT * FROM money_investment ORDER BY updatedAt DESC")
     fun all(): Flow<List<InvestmentEntity>>
 }
