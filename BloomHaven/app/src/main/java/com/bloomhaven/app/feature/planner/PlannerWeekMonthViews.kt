@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -90,7 +93,7 @@ fun MonthView(state: PlannerUiState, viewModel: PlannerViewModel) {
         Text(DateUtils.monthLabel(state.selectedDate), style = MaterialTheme.typography.titleMedium)
         androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
         LazyVerticalGrid(columns = GridCells.Fixed(7), modifier = Modifier.fillMaxWidth()) {
-            items(daysInGrid) { day: LocalDate ->
+            gridItems(daysInGrid) { day: LocalDate ->
                 val inMonth = day.month == monthStart.month
                 val hasItems = state.monthDatesWithItems.contains(day)
                 val isToday = day == LocalDate.now()

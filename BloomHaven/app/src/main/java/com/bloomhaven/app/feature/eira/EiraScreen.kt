@@ -24,6 +24,7 @@ import com.bloomhaven.app.core.ui.BloomCard
 import com.bloomhaven.app.core.ui.EmptyState
 import com.bloomhaven.app.core.ui.ScreenPadding
 import com.bloomhaven.app.core.util.DateUtils
+import androidx.compose.foundation.layout.height
 
 @Composable
 fun EiraScreen(viewModel: EiraViewModel = viewModel()) {

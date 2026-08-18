@@ -1,3 +1,4 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.bloomhaven.app.feature.moneyhaven
 
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import com.bloomhaven.app.core.ui.ConfirmDeleteDialog
 import com.bloomhaven.app.core.ui.EmptyState
 import com.bloomhaven.app.core.ui.ScreenPadding
 import com.bloomhaven.app.core.util.CurrencyUtils
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun MoneyBudgetsTab(viewModel: MoneyViewModel, state: MoneyUiState) {

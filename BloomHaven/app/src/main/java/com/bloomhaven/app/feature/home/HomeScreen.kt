@@ -33,6 +33,7 @@ import com.bloomhaven.app.core.ui.ScreenPadding
 import com.bloomhaven.app.core.util.DateUtils
 import com.bloomhaven.app.feature.gentletasks.TaskEntity
 import com.bloomhaven.app.feature.planner.PlannerItemEntity
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = viewModel(), onOpenModule: (String) -> Unit = {}) {

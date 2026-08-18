@@ -33,6 +33,7 @@ import com.bloomhaven.app.core.ui.EmptyState
 import com.bloomhaven.app.core.ui.ScreenPadding
 import com.bloomhaven.app.core.util.CurrencyUtils
 import com.bloomhaven.app.core.util.DateUtils
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun MoneySavingsTab(viewModel: MoneyViewModel, state: MoneyUiState) {

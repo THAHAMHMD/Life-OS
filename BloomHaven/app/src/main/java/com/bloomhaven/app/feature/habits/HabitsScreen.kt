@@ -1,9 +1,10 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 package com.bloomhaven.app.feature.habits
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IconButton
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +44,7 @@ import com.bloomhaven.app.core.ui.EmptyState
 import com.bloomhaven.app.core.ui.ScreenPadding
 import com.bloomhaven.app.core.util.DateUtils
 import java.time.DayOfWeek
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun HabitsScreen(viewModel: HabitsViewModel = viewModel()) {
